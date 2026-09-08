@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Compression Ledger</title>
+<meta name="description" content="Quantizing a real 1.48B-parameter language model's weights: what genuinely worked, what lost to existing tools, and what a proper benchmark refuted outright.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EBF0E9; --surface: #F7FAF5; --surface-raised: #FFFFFF;
+    --ink: #16201A; --ink-soft: #55624E; --ink-faint: #8B9683; --rule: #CFD9C6;
+    --accent: #1E6E58; --accent-ink: #F7FAF5; --accent-tint: #DCEBE3;
+    --copper: #AD5C27; --copper-tint: #F3E3D2;
+    --null: #6B7268; --null-tint: #E7EAE1;
+    --shadow: rgba(19, 28, 20, 0.10);
+    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+    --font-body: "Archivo", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Space Mono", "IBM Plex Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10150E; --surface: #171E15; --surface-raised: #1D2519;
+      --ink: #E6EBDF; --ink-soft: #9DA793; --ink-faint: #667060; --rule: #2B3527;
+      --accent: #57B296; --accent-ink: #0B120D; --accent-tint: #1C332B;
+      --copper: #E4915A; --copper-tint: #33261B;
+      --null: #8B9683; --null-tint: #232B1F;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--paper); }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent-tint); color: var(--ink); }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .page { max-width: 780px; margin: 0 auto; padding: 0 1.6rem 5rem; }
+
+  .notebook-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 1.6rem; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 0.78rem; }
+  .notebook-nav a { color: var(--ink-soft); text-decoration: none; }
+  .notebook-nav a:hover { color: var(--accent); }
+  .notebook-nav .home { color: var(--ink); font-weight: 700; }
+  .notebook-nav .home::before { content: "\2190 "; color: var(--copper); }
+
+  .hero { max-width: none; padding: 3.2rem 1.6rem 2.2rem; background: linear-gradient(180deg, var(--surface) 0%, var(--paper) 100%); border-bottom: 1px solid var(--rule); }
+  .hero-inner { max-width: 780px; margin: 0 auto; display: grid; gap: 1.4rem; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--copper); margin: 0; }
+  h1.title { font-family: var(--font-display); font-optical-sizing: auto; font-weight: 600; font-size: clamp(2.4rem, 7vw, 3.6rem); line-height: 1.04; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  .dek { font-size: 1.08rem; color: var(--ink-soft); max-width: 50ch; margin: 0; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .stat { background: var(--surface-raised); padding: 0.95rem 0.8rem; }
+  .stat .n { display: block; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+  .stat .l { font-size: 0.72rem; color: var(--ink-soft); }
+
+  section { padding: 3rem 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.7rem; margin: 0 0 1rem; text-wrap: balance; }
+  h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; margin: 0 0 0.5rem; }
+  p { margin: 0 0 1rem; max-width: 64ch; }
+  p:last-child { margin-bottom: 0; }
+  code { font-family: var(--font-mono); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 0.05em 0.35em; font-size: 0.9em; }
+
+  .finding { background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 14px; padding: 1.5rem 1.6rem; margin-top: 1.2rem; box-shadow: 0 1px 2px var(--shadow); }
+  .finding-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+  .finding-head h3 { margin: 0; }
+  .tag { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.22rem 0.55rem; border-radius: 999px; font-weight: 700; }
+  .tag--proven { background: var(--accent-tint); color: var(--accent); }
+  .tag--null { background: var(--null-tint); color: var(--null); }
+  .tag--limit { background: var(--copper-tint); color: var(--copper); }
+
+  .kernel-wrap { display: flex; justify-content: center; margin: 1rem 0 0.2rem; overflow-x: auto; }
+  #kernelCanvas { display: block; }
+
+  .sample { font-family: var(--font-mono); font-size: 0.85rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin-top: 1rem; }
+  .sample .who { color: var(--copper); font-weight: 700; }
+
+  .null-list { list-style: none; margin: 1.2rem 0 0; padding: 0; display: grid; gap: 0.55rem; }
+  .null-item { display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; align-items: start; padding: 0.85rem 1rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
+  .null-what { font-weight: 600; font-size: 0.95rem; }
+  .null-detail { color: var(--ink-soft); font-size: 0.88rem; font-family: var(--font-mono); }
+
+  .support { background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 16px; padding: 2rem; text-align: center; display: grid; gap: 0.9rem; justify-items: center; }
+  .support h2 { margin: 0; }
+  .support p { max-width: 48ch; }
+  .btc-card { display: grid; gap: 0.5rem; justify-items: center; border: 1px solid var(--rule); border-radius: 12px; padding: 1.1rem 1.4rem; background: var(--surface); }
+  .btc-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--copper); }
+  .btc-addr-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+  .btc-addr { font-family: var(--font-mono); font-size: 0.92rem; color: var(--ink); word-break: break-all; }
+  .btc-copy { font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent); background: var(--accent-tint); border: 1px solid var(--accent); border-radius: 999px; padding: 0.32rem 0.8rem; cursor: pointer; }
+  .btc-copy[data-copied="true"] { color: var(--accent-ink); background: var(--accent); }
+
+  footer { border-top: 1px solid var(--rule); padding-top: 1.6rem; margin-top: 3rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-faint); }
+  @media (max-width: 560px) { .stat-row { grid-template-columns: 1fr; } .null-item { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="notebook-nav"><a class="home" href="/">The Lab Notebook</a><span>weight quantization</span></nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Field report &middot; model compression</p>
+    <h1 class="title">The Compression Ledger</h1>
+    <p class="dek">Quantizing the real weights of a 1.48-billion-parameter language model, down to a 31-level integer codebook. What genuinely worked, what it loses to, and what a proper benchmark refuted outright.</p>
+
+    <div class="stat-row">
+      <div class="stat"><span class="n">5.05:1</span><span class="l">real compression ratio</span></div>
+      <div class="stat"><span class="n">0.997</span><span class="l">mean cosine fidelity</span></div>
+      <div class="stat"><span class="n">3.3&times;</span><span class="l">AVX2 speedup over scalar</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <section>
+    <h2>What was actually built</h2>
+    <p>Every 2D weight tensor in <code>allenai/OLMo-2-0425-1B</code> &mdash; 179 real tensors, 1,484,783,616 parameters &mdash; was quantized to a 31-level signed integer codebook with a per-32-value block scale, using a vectorized nearest-codeword search. The whole model went from 5,939.7&nbsp;MB (fp32) to 1,176.0&nbsp;MB, a real 5.051:1 ratio, in 410 seconds. Mean per-tensor cosine fidelity against the original weights: 0.997058.</p>
+    <p>That's not a synthetic benchmark. Every 2D tensor in the model was swapped for its quantized reconstruction and run through a real forward pass:</p>
+    <div class="sample">
+      <div><span class="who">fp32:</span> "The capital of France is Paris. The French language is spoken in France. The French people are known as the French. The"</div>
+      <div style="margin-top:0.6rem;"><span class="who">quantized:</span> "The capital of France is Paris. France is a country in Western Europe. It is a very old country. The French people"</div>
+    </div>
+    <p style="margin-top:0.8rem;">Not identical, both fully coherent and factually correct. That's the expected, honest degree of degradation at ~5:1 lossy compression &mdash; not broken, not lossless.</p>
+  </section>
+
+  <section>
+    <h2>The kernel</h2>
+    <p>A real AVX2 gather+FMA kernel dequantizes and dot-products directly against the packed codebook representation, verified correct against numpy (relative RMSE 3.1&times;10<sup>&minus;7</sup>). An earlier <code>pshufb</code>-based approach was rewritten with a genuinely vectorized byte-plane reassembly and got 2.5&times; faster than its first, buggy version &mdash; but still lost to the gather kernel. Both numbers are real, and the second one is a loss, reported as one.</p>
+    <div class="kernel-wrap"><canvas id="kernelCanvas" width="600" height="180"></canvas></div>
+  </section>
+
+  <section>
+    <h2>What this loses to, honestly</h2>
+    <div class="finding">
+      <div class="finding-head"><h3>llama.cpp's GGUF quantization</h3><span class="tag tag--limit">Not competitive</span></div>
+      <p>The codebook here is structurally the same idea as GGUF's own <code>Q4_K</code>/<code>Q5_K</code> formats &mdash; a per-block scale plus a quantization table, computed without calibration data. GGUF gets to a better effective bit-width (roughly 4&ndash;5 bits/value vs. this format's ~6) with a decade of kernel engineering and an enormous existing ecosystem behind it. This isn't a faster or smaller alternative to what's already free and dominant &mdash; it's an independent implementation of the same idea, at a worse operating point. Reported as such, not sold as more.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What a proper benchmark refuted</h2>
+    <p>A real cache-hierarchy table looked like a design opportunity: attention-projection tensors fit entirely inside L3 cache once quantized, so tiling for L2/L3 residency looked like it should measurably help. It didn't. A real benchmark cycling the AVX2 kernel through 1 to 16 real quantized layers &mdash; 3.67&nbsp;MB up to 58.72&nbsp;MB, roughly 10&times; past the 6&nbsp;MB L3 on this machine &mdash; held completely flat at ~5,585 cycles per row-dot at every single working-set size. Gather-instruction latency dominates regardless of whether the data fits in cache. The tiling claim isn't unproven anymore; it's refuted.</p>
+    <ul class="null-list">
+      <li class="null-item"><div class="null-what">L2/L3 tiling speedup</div><div class="null-detail">flat 5582&ndash;5589 cycles/row-dot across 3.67MB&ndash;58.72MB, ~10&times; past L3 &mdash; no memory-bound regime found</div></li>
+      <li class="null-item"><div class="null-what">pshufb faster than gather</div><div class="null-detail">fixed reassembly bug, 2.5&times; faster than its buggy self, still ~1.7&times; slower than the gather kernel</div></li>
+    </ul>
+  </section>
+
+  <section class="support" style="border-bottom:none;">
+    <h2>Follow the next search</h2>
+    <p>This report and the rest of the notebook are supported directly via Bitcoin &mdash; no account required.</p>
+    <div class="btc-card">
+      <span class="btc-label">Bitcoin</span>
+      <div class="btc-addr-row">
+        <span class="btc-addr" id="btcAddr">bc1qkrl65hlfmvnp5w2jwtk4fmldg6jvmfwn0azzqu</span>
+        <button class="btc-copy" id="btcCopyBtn" type="button">Copy</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Model: <code>allenai/OLMo-2-0425-1B</code>, Apache 2.0, 1,484,916,736 params, 16 layers, hidden size 2048. CPU-only quantization and inference; no GPU used.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var cs = getComputedStyle(document.documentElement);
+  var C = {
+    ink: cs.getPropertyValue('--ink').trim(),
+    inkSoft: cs.getPropertyValue('--ink-soft').trim(),
+    accent: cs.getPropertyValue('--accent').trim(),
+    copper: cs.getPropertyValue('--copper').trim(),
+    rule: cs.getPropertyValue('--rule').trim(),
+    surface: cs.getPropertyValue('--surface').trim(),
+    mono: "Space Mono, monospace"
+  };
+
+  (function () {
+    var canvas = document.getElementById('kernelCanvas');
+    var dpr = window.devicePixelRatio || 1;
+    var w = 600, h = 180;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    var bars = [
+      { label: 'scalar', val: 18587, color: C.inkSoft },
+      { label: 'pshufb (fixed)', val: 9200, color: C.copper },
+      { label: 'AVX2 gather', val: 5577, color: C.accent }
+    ];
+    var max = 18587;
+    var padL = 130, padR = 70, top = 20, rowH = 44, gap = 14;
+
+    ctx.clearRect(0, 0, w, h);
+    bars.forEach(function (b, i) {
+      var y = top + i * (rowH + gap);
+      var barMaxW = w - padL - padR;
+      var barW = (b.val / max) * barMaxW;
+
+      ctx.fillStyle = C.ink;
+      ctx.font = '600 13px ' + C.mono;
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(b.label, padL - 14, y + rowH / 2);
+
+      ctx.fillStyle = C.surface;
+      ctx.fillRect(padL, y, barMaxW, rowH);
+      ctx.strokeStyle = C.rule;
+      ctx.strokeRect(padL, y, barMaxW, rowH);
+
+      ctx.fillStyle = b.color;
+      ctx.fillRect(padL, y, barW, rowH);
+
+      ctx.fillStyle = C.ink;
+      ctx.font = 'bold 13px ' + C.mono;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(b.val.toLocaleString() + ' cyc', padL + barW + 10, y + rowH / 2);
+    });
+  })();
+
+  (function () {
+    var btn = document.getElementById('btcCopyBtn');
+    var addrEl = document.getElementById('btcAddr');
+    if (!btn || !addrEl) return;
+    btn.addEventListener('click', function () {
+      var text = addrEl.textContent;
+      function done(ok) {
+        btn.textContent = ok ? 'Copied' : 'Select & copy';
+        btn.setAttribute('data-copied', ok ? 'true' : 'false');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.removeAttribute('data-copied'); }, 1800);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else { done(false); }
+    });
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ten of Eighteen</title>
+<meta name="description" content="Among gaps between consecutive primes, only 10 of 18 possible remainders mod 18 ever occur. A proven mechanism, verified to 300 million, with the derivation worked in full.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EBF0E9; --surface: #F7FAF5; --surface-raised: #FFFFFF;
+    --ink: #16201A; --ink-soft: #55624E; --ink-faint: #8B9683; --rule: #CFD9C6;
+    --accent: #1E6E58; --accent-ink: #F7FAF5; --accent-tint: #DCEBE3;
+    --copper: #AD5C27; --copper-tint: #F3E3D2;
+    --null: #6B7268; --null-tint: #E7EAE1;
+    --shadow: rgba(19, 28, 20, 0.10);
+    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+    --font-body: "Archivo", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Space Mono", "IBM Plex Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10150E; --surface: #171E15; --surface-raised: #1D2519;
+      --ink: #E6EBDF; --ink-soft: #9DA793; --ink-faint: #667060; --rule: #2B3527;
+      --accent: #57B296; --accent-ink: #0B120D; --accent-tint: #1C332B;
+      --copper: #E4915A; --copper-tint: #33261B;
+      --null: #8B9683; --null-tint: #232B1F;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--paper); }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent-tint); color: var(--ink); }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .page { max-width: 780px; margin: 0 auto; padding: 0 1.6rem 5rem; }
+
+  .notebook-nav {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.6rem; border-bottom: 1px solid var(--rule);
+    font-family: var(--font-mono); font-size: 0.78rem;
+  }
+  .notebook-nav a { color: var(--ink-soft); text-decoration: none; }
+  .notebook-nav a:hover { color: var(--accent); }
+  .notebook-nav .home { color: var(--ink); font-weight: 700; }
+  .notebook-nav .home::before { content: "\2190 "; color: var(--copper); }
+
+  .hero { max-width: none; padding: 3.2rem 1.6rem 2.2rem; background: linear-gradient(180deg, var(--surface) 0%, var(--paper) 100%); border-bottom: 1px solid var(--rule); }
+  .hero-inner { max-width: 780px; margin: 0 auto; display: grid; gap: 1.6rem; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--copper); margin: 0; }
+  h1.title { font-family: var(--font-display); font-optical-sizing: auto; font-weight: 600; font-size: clamp(2.4rem, 7vw, 3.6rem); line-height: 1.04; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  .dek { font-size: 1.08rem; color: var(--ink-soft); max-width: 46ch; margin: 0; }
+  .gear-wrap { display: flex; justify-content: center; margin: 0.4rem 0 0.2rem; }
+  .gear-caption { text-align: center; font-family: var(--font-mono); font-size: 0.74rem; color: var(--ink-faint); margin: -0.6rem 0 0; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .stat { background: var(--surface-raised); padding: 0.95rem 0.8rem; }
+  .stat .n { display: block; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .stat .l { font-size: 0.72rem; color: var(--ink-soft); }
+
+  section { padding: 3rem 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.7rem; margin: 0 0 1rem; text-wrap: balance; }
+  p { margin: 0 0 1rem; max-width: 64ch; }
+  p:last-child { margin-bottom: 0; }
+  code { font-family: var(--font-mono); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 0.05em 0.35em; font-size: 0.9em; }
+
+  .table-scroll { overflow-x: auto; margin-top: 1rem; border: 1px solid var(--rule); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; min-width: 460px; }
+  thead th { text-align: left; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; padding: 0.6rem 0.85rem; background: var(--surface); border-bottom: 1px solid var(--rule); }
+  tbody td { padding: 0.5rem 0.85rem; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 0.85rem; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; }
+  .yes { color: var(--accent); font-weight: 700; }
+  .no { color: var(--ink-faint); }
+
+  .support { background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 16px; padding: 2rem; text-align: center; display: grid; gap: 0.9rem; justify-items: center; }
+  .support h2 { margin: 0; }
+  .support p { max-width: 48ch; }
+  .btc-card { display: grid; gap: 0.5rem; justify-items: center; border: 1px solid var(--rule); border-radius: 12px; padding: 1.1rem 1.4rem; background: var(--surface); }
+  .btc-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--copper); }
+  .btc-addr-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+  .btc-addr { font-family: var(--font-mono); font-size: 0.92rem; color: var(--ink); word-break: break-all; }
+  .btc-copy { font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent); background: var(--accent-tint); border: 1px solid var(--accent); border-radius: 999px; padding: 0.32rem 0.8rem; cursor: pointer; }
+  .btc-copy[data-copied="true"] { color: var(--accent-ink); background: var(--accent); }
+
+  footer { border-top: 1px solid var(--rule); padding-top: 1.6rem; margin-top: 3rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-faint); }
+  @media (max-width: 560px) { .stat-row { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; } }
+</style>
+</head>
+<body>
+
+<nav class="notebook-nav"><a class="home" href="/">The Lab Notebook</a><span>prime gap residues</span></nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Proven result &middot; elementary number theory</p>
+    <h1 class="title">Ten of Eighteen</h1>
+    <p class="dek">Look at the gap between one prime and the next, and take that gap mod 18. There are 18 possible remainders. Only 10 of them ever happen &mdash; not approximately, not usually. Never the other 8.</p>
+
+    <div class="gear-wrap"><canvas id="gearCanvas" width="260" height="260"></canvas></div>
+    <p class="gear-caption">the 8 dashed notches are not rare &mdash; they are impossible</p>
+
+    <div class="stat-row">
+      <div class="stat"><span class="n">10 / 18</span><span class="l">residues occur</span></div>
+      <div class="stat"><span class="n">16,252,325</span><span class="l">primes checked</span></div>
+      <div class="stat"><span class="n">0</span><span class="l">counterexamples</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <section>
+    <h2>The claim</h2>
+    <p>Take every pair of consecutive primes <code>(p, q)</code> and compute <code>(q &minus; p) mod 18</code>. Across every prime up to 300,000,000 &mdash; 16,252,325 of them &mdash; that value only ever lands on one of ten residues: <code>0, 1, 2, 4, 6, 8, 10, 12, 14, 16</code>. The other eight, <code>3, 5, 7, 9, 11, 13, 15, 17</code>, never occur. Zero counterexamples at that scale, and the reason isn't statistical &mdash; it's forced.</p>
+  </section>
+
+  <section>
+    <h2>The mechanism, worked in full</h2>
+    <p>Every prime past 2 is odd. So for any two consecutive primes past the very start of the list, both are odd &mdash; and <b>odd minus odd is always even</b>. That alone rules out every odd residue mod 18 except one: whatever gap involves the single even prime, 2. The only such gap is the first one, <code>2 &rarr; 3</code>, which equals 1. Every other gap in existence is even, so its residue mod 18 must be one of the nine even values. Nine even residues, plus that one forced exception, is ten. There is no eleventh case to find &mdash; the mechanism is exhaustive by parity alone.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Residue mod 18</th><th>Parity</th><th>Occurs</th></tr></thead>
+        <tbody id="residueTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>A correction, on the record</h2>
+    <p>An earlier phrasing of this result described the ten residues as "coprime to 18," which happens to be numerically true for most of them but implies extra structure &mdash; some mod-3 relationship &mdash; that isn't actually doing any work. The real mechanism is parity alone: even-gap forced, plus one odd exception. The stronger-sounding phrasing was replaced with the precise one. Getting caught overclaiming your own result and fixing it in public is part of what a lab notebook is for.</p>
+  </section>
+
+  <section class="support" style="border-bottom:none;">
+    <h2>Follow the next search</h2>
+    <p>This result and the rest of the notebook are supported directly via Bitcoin &mdash; no account required.</p>
+    <div class="btc-card">
+      <span class="btc-label">Bitcoin</span>
+      <div class="btc-addr-row">
+        <span class="btc-addr" id="btcAddr">bc1qkrl65hlfmvnp5w2jwtk4fmldg6jvmfwn0azzqu</span>
+        <button class="btc-copy" id="btcCopyBtn" type="button">Copy</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Verified by direct computation over the real prime sequence to 300,000,000, independent of any single tool's internal cap.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var cs = getComputedStyle(document.documentElement);
+  var C = {
+    ink: cs.getPropertyValue('--ink').trim(),
+    inkSoft: cs.getPropertyValue('--ink-soft').trim(),
+    inkFaint: cs.getPropertyValue('--ink-faint').trim(),
+    accent: cs.getPropertyValue('--accent').trim(),
+    rule: cs.getPropertyValue('--rule').trim(),
+    surface: cs.getPropertyValue('--surface').trim(),
+    mono: "Space Mono, monospace"
+  };
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var occurs = {0:1,1:1,2:1,4:1,6:1,8:1,10:1,12:1,14:1,16:1};
+
+  var tbody = document.getElementById('residueTableBody');
+  for (var i = 0; i < 18; i++) {
+    var tr = document.createElement('tr');
+    var parity = i % 2 === 0 ? 'even' : 'odd';
+    var occ = occurs[i] ? '<span class="yes">yes</span>' : '<span class="no">never</span>';
+    tr.innerHTML = '<td class="num">' + i + '</td><td>' + parity + '</td><td>' + occ + '</td>';
+    tbody.appendChild(tr);
+  }
+
+  (function () {
+    var canvas = document.getElementById('gearCanvas');
+    var dpr = window.devicePixelRatio || 1;
+    var size = 260;
+    canvas.width = size * dpr; canvas.height = size * dpr;
+    canvas.style.width = size + 'px'; canvas.style.height = size + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var cx = size / 2, cy = size / 2;
+    var rInner = 74, rOuter = 110;
+    var rot = 0;
+
+    function drawTooth(i) {
+      var a0 = (i / 18) * Math.PI * 2 - Math.PI / 2;
+      var a1 = ((i + 0.82) / 18) * Math.PI * 2 - Math.PI / 2;
+      var mid = (a0 + a1) / 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, rInner, a0, a1);
+      if (occurs[i]) ctx.arc(cx, cy, rOuter, a1, a0, true);
+      ctx.closePath();
+      if (occurs[i]) { ctx.fillStyle = C.accent; ctx.fill(); }
+      else { ctx.strokeStyle = C.rule; ctx.lineWidth = 1.2; ctx.setLineDash([2, 2]); ctx.stroke(); ctx.setLineDash([]); }
+      var lr = rOuter + 15;
+      ctx.fillStyle = occurs[i] ? C.ink : C.inkFaint;
+      ctx.font = '11px ' + C.mono;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(i), cx + Math.cos(mid) * lr, cy + Math.sin(mid) * lr);
+    }
+    function draw() {
+      ctx.clearRect(0, 0, size, size);
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.translate(-cx, -cy);
+      for (var i = 0; i < 18; i++) drawTooth(i);
+      ctx.restore();
+      ctx.beginPath(); ctx.arc(cx, cy, rInner - 12, 0, Math.PI * 2);
+      ctx.fillStyle = C.surface; ctx.fill(); ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = C.ink; ctx.font = '600 15px Fraunces, serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('mod 18', cx, cy - 7);
+      ctx.font = '11px ' + C.mono; ctx.fillStyle = C.inkSoft;
+      ctx.fillText('10 / 18', cx, cy + 11);
+    }
+    draw();
+    if (!reduceMotion) {
+      (function tick() { rot += 0.0016; draw(); requestAnimationFrame(tick); })();
+    }
+  })();
+
+  (function () {
+    var btn = document.getElementById('btcCopyBtn');
+    var addrEl = document.getElementById('btcAddr');
+    if (!btn || !addrEl) return;
+    btn.addEventListener('click', function () {
+      var text = addrEl.textContent;
+      function done(ok) {
+        btn.textContent = ok ? 'Copied' : 'Select & copy';
+        btn.setAttribute('data-copied', ok ? 'true' : 'false');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.removeAttribute('data-copied'); }, 1800);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else { done(false); }
+    });
+  })();
+})();
+</script>
+</body>
+</html>
