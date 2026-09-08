@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Reproducing Set</title>
+<meta name="description" content="A closed number-theory investigation into self-reproducing numbers — 57 confirmed hits, two real findings, and an honest public record of everything that didn't hold up.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EBF0E9;
+    --surface: #F7FAF5;
+    --surface-raised: #FFFFFF;
+    --ink: #16201A;
+    --ink-soft: #55624E;
+    --ink-faint: #8B9683;
+    --rule: #CFD9C6;
+    --accent: #1E6E58;
+    --accent-ink: #F7FAF5;
+    --accent-tint: #DCEBE3;
+    --copper: #AD5C27;
+    --copper-tint: #F3E3D2;
+    --null: #6B7268;
+    --null-tint: #E7EAE1;
+    --shadow: rgba(19, 28, 20, 0.10);
+
+    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+    --font-body: "Archivo", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Space Mono", "IBM Plex Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10150E;
+      --surface: #171E15;
+      --surface-raised: #1D2519;
+      --ink: #E6EBDF;
+      --ink-soft: #9DA793;
+      --ink-faint: #667060;
+      --rule: #2B3527;
+      --accent: #57B296;
+      --accent-ink: #0B120D;
+      --accent-tint: #1C332B;
+      --copper: #E4915A;
+      --copper-tint: #33261B;
+      --null: #8B9683;
+      --null-tint: #232B1F;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { background: var(--paper); }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-tint); color: var(--ink); }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, .cta:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .page { max-width: 780px; margin: 0 auto; padding: 0 1.6rem 5rem; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    max-width: none;
+    padding: 3.2rem 1.6rem 2.2rem;
+    background:
+      linear-gradient(180deg, var(--surface) 0%, var(--paper) 100%);
+    border-bottom: 1px solid var(--rule);
+  }
+  .hero-inner { max-width: 780px; margin: 0 auto; display: grid; gap: 1.6rem; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin: 0;
+  }
+  h1.title {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(2.4rem, 7vw, 3.6rem);
+    line-height: 1.04;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .dek {
+    font-size: 1.08rem;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: 0;
+  }
+  .gear-wrap { display: flex; justify-content: center; margin: 0.4rem 0 0.2rem; }
+  #gearCanvas { display: block; }
+  .gear-caption {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    margin: -0.6rem 0 0;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .stat { background: var(--surface-raised); padding: 0.95rem 0.8rem; }
+  .stat .n {
+    display: block;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat .l { font-size: 0.72rem; color: var(--ink-soft); }
+
+  /* ---------- sections ---------- */
+  section { padding: 3rem 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.7rem;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0 0 0.5rem;
+  }
+  p { margin: 0 0 1rem; max-width: 64ch; }
+  p:last-child { margin-bottom: 0; }
+  code {
+    font-family: var(--font-mono);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
+    font-size: 0.9em;
+  }
+
+  .recurrence {
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    color: var(--ink-soft);
+  }
+  .recurrence b { color: var(--ink); }
+  .recurrence .hit { color: var(--accent); font-weight: 700; }
+
+  /* findings */
+  .finding {
+    background: var(--surface-raised);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.5rem 1.6rem;
+    margin-top: 1.2rem;
+    box-shadow: 0 1px 2px var(--shadow);
+  }
+  .finding-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+  .finding-head h3 { margin: 0; }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+  .tag--proven { background: var(--accent-tint); color: var(--accent); }
+  .tag--signal { background: var(--copper-tint); color: var(--copper); }
+  .tag--null { background: var(--null-tint); color: var(--null); }
+
+  .jigsaw-wrap { display: flex; justify-content: center; margin: 1.1rem 0 0.3rem; overflow-x: auto; }
+  #jigsawCanvas { display: block; }
+  .jigsaw-caption {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+  }
+
+  .smooth-bars { display: grid; gap: 0.6rem; margin: 1.1rem 0 0.2rem; }
+  .smooth-row { display: grid; grid-template-columns: 7.5rem 1fr auto; align-items: center; gap: 0.7rem; }
+  .smooth-label { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); }
+  .smooth-track { background: var(--surface); border: 1px solid var(--rule); border-radius: 5px; height: 0.85rem; overflow: hidden; }
+  .smooth-fill { height: 100%; border-radius: 5px 0 0 5px; }
+  .smooth-fill.real { background: var(--accent); }
+  .smooth-fill.control { background: var(--ink-faint); }
+  .smooth-val { font-family: var(--font-mono); font-size: 0.78rem; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+
+  /* null list */
+  .null-list { list-style: none; margin: 1.2rem 0 0; padding: 0; display: grid; gap: 0.55rem; }
+  .null-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 0.85rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+  }
+  .null-item.featured { border-color: var(--copper); border-left-width: 3px; }
+  .null-what { font-weight: 600; font-size: 0.95rem; }
+  .null-detail { color: var(--ink-soft); font-size: 0.88rem; font-family: var(--font-mono); }
+
+  .table-scroll { overflow-x: auto; margin-top: 1rem; border: 1px solid var(--rule); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; min-width: 480px; }
+  thead th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 0.6rem 0.85rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody td { padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, th.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  td.hits-list { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); max-width: 300px; }
+  .prime-mark { color: var(--copper); font-weight: 700; }
+
+  /* support / close */
+  .support {
+    background: var(--surface-raised);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    display: grid;
+    gap: 0.9rem;
+    justify-items: center;
+  }
+  .support h2 { margin: 0; }
+  .support p { max-width: 48ch; }
+  .btc-card {
+    display: grid;
+    gap: 0.5rem;
+    justify-items: center;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 1.1rem 1.4rem;
+    background: var(--surface);
+  }
+  .btc-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--copper);
+  }
+  .btc-addr-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+  .btc-addr {
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    color: var(--ink);
+    word-break: break-all;
+  }
+  .btc-copy {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--accent);
+    background: var(--accent-tint);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.32rem 0.8rem;
+    cursor: pointer;
+  }
+  .btc-copy:hover { filter: brightness(0.97); }
+  .btc-copy[data-copied="true"] { color: var(--accent-ink); background: var(--accent); }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.6rem;
+    margin-top: 3rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 560px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .null-item { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Closing report &middot; computational number theory</p>
+    <h1 class="title">The Reproducing Set</h1>
+    <p class="dek">A number whose own digits, fed back through repeated summation, eventually reproduce it. A multi-week search across 3&ndash;17 digits, two results that survived rigorous testing &mdash; and a public record of everything that didn't.</p>
+
+    <div class="gear-wrap"><canvas id="gearCanvas" width="220" height="220"></canvas></div>
+    <p class="gear-caption">18 possible remainders between consecutive primes &mdash; only 10 ever occur</p>
+
+    <div class="stat-row">
+      <div class="stat"><span class="n">57</span><span class="l">confirmed hits</span></div>
+      <div class="stat"><span class="n">3</span><span class="l">prime</span></div>
+      <div class="stat"><span class="n">3&ndash;17</span><span class="l">digit-lengths searched</span></div>
+      <div class="stat"><span class="n">1</span><span class="l">proven generative rule</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <section>
+    <h2>The definition</h2>
+    <p>Take a number <code>n</code> with <code>d</code> digits. Seed a sequence with those <code>d</code> digits as the first terms. Every later term is the sum of the previous <code>d</code> terms &mdash; a generalized Fibonacci recurrence, width <code>d</code> instead of 2. <code>n</code> is <b>self-reproducing</b> if it reappears later in its own sequence, before the sequence grows past 50&times; its own value.</p>
+    <div class="recurrence">seed (d=3): <b>1, 9, 7</b>&nbsp; &rarr; 17, 33, 57, 107, <span class="hit">197</span><br>197 reappeared &mdash; <b>197 is self-reproducing.</b></div>
+  </section>
+
+  <section>
+    <h2>What the search found</h2>
+    <p>Starting from exhaustive brute force and ending with a custom meet-in-the-middle solver, the search covered every digit-length from 3 to 17, turning up 57 confirmed self-reproducing numbers. The rate of discovery collapses fast &mdash; each additional digit doesn't just add one more decimal place, it makes hits roughly ten times rarer. Ten digits produced none at all.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th class="num">Digits</th><th class="num">Hits</th><th class="num">Avg. steps</th><th>Values found</th></tr></thead>
+        <tbody id="dataTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two real discoveries</h2>
+    <p>Most of what got tested came back statistically ordinary. Two things didn't &mdash; one is a proof, the other is a measured, repeatable signature with no proof yet.</p>
+
+    <div class="finding">
+      <div class="finding-head"><h3>The additive family rule</h3><span class="tag tag--proven">Proven</span></div>
+      <p>Because the recurrence is linear, two self-reproducing numbers of the same length can be added digit-by-digit &mdash; no carrying &mdash; to produce a third. This isn't a pattern noticed in the data; it follows directly from the math.</p>
+      <div class="jigsaw-wrap"><canvas id="jigsawCanvas" width="620" height="230"></canvas></div>
+      <p class="jigsaw-caption">1104 + 2580 = 3684, digit by digit &mdash; each digit drawn as its own shape (0 wild, 1 circle, 2 line, 3&ndash;9 an n-sided polygon)</p>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><h3>The smoothness signature</h3><span class="tag tag--signal">Measured, unexplained</span></div>
+      <p>Self-reproducing numbers are consistently far more composite than random numbers of the same size &mdash; their largest prime factor is typically 10&ndash;100&times; smaller, relative to <code>n</code>, than a random-integer control. The gap widens as digit-length grows. There's a plausible mechanism (summing recurrence terms tends to accumulate small factors) but no proof.</p>
+      <div class="smooth-bars">
+        <div class="smooth-row"><span class="smooth-label">self-reproducing</span><div class="smooth-track"><div class="smooth-fill real" style="width:12%"></div></div><span class="smooth-val">largest factor &asymp; n<sup>0.12</sup></span></div>
+        <div class="smooth-row"><span class="smooth-label">random control</span><div class="smooth-track"><div class="smooth-fill control" style="width:78%"></div></div><span class="smooth-val">largest factor &asymp; n<sup>0.78</sup></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The 18-tooth fact</h2>
+    <p>A separate, fully proven result from the same line of research: among gaps between consecutive primes, only <b>10 of 18</b> possible values of <code>gap mod 18</code> ever occur &mdash; <code>0, 1, 2, 4, 6, 8, 10, 12, 14, 16</code>. Confirmed at a real scale of 300,000,000 (16,252,325 primes, zero counterexamples).</p>
+    <p>The mechanism is exact, not statistical: a gap between two odd primes is always even, so its residue must be one of the 9 even values mod 18. The sole exception is the very first gap, 2&rarr;3, which equals 1. Nine even residues plus one odd exception is ten &mdash; the gear above has no room for an eleventh.</p>
+  </section>
+
+  <section>
+    <h2>What didn't hold up</h2>
+    <p>Every item below was tested against the real data and came back statistically indistinguishable from chance. Ruling these out is real information &mdash; it's what let the two findings above stand out as genuine.</p>
+    <ul class="null-list">
+      <li class="null-item"><div class="null-what">Modular residues</div><div class="null-detail">mod 3, 7, 9, 11, 13 &mdash; all &chi;&sup2; well under significance</div></li>
+      <li class="null-item"><div class="null-what">Digit 9 frequency &amp; position</div><div class="null-detail">9.6% occurrence vs. 10% expected</div></li>
+      <li class="null-item"><div class="null-what">Benford's law (leading digit)</div><div class="null-detail">&chi;&sup2;=11.3 of 8 dof, threshold 15.5</div></li>
+      <li class="null-item"><div class="null-what">First/last two-digit primality</div><div class="null-detail">no pair correlation found</div></li>
+      <li class="null-item"><div class="null-what">Density vs. prime gaps</div><div class="null-detail">decay matches known prime + hit density curves independently</div></li>
+      <li class="null-item featured">
+        <div class="null-what">Digit-shape "interlocking"<br><span class="tag tag--null" style="margin-top:0.35rem;display:inline-block;">Tested 2026-09-08</span></div>
+        <div class="null-detail">Same shape rule as above (digit &rarr; polygon interior angle), tested as a real geometric closure condition: does a number's running angle-sum ever land on an exact multiple of 360&deg;? Real rate 1.7% vs. 20,000-trial structure-space control mean 0.7% &mdash; real assignment ranks 210th of 20,001 (p&asymp;0.03 on one metric, p&asymp;0.08 on a second, correlated one, driven by only 6 of 57 numbers). Not distinguishable from noise at this sample size &mdash; no real interlocking effect.</div>
+      </li>
+    </ul>
+  </section>
+
+  <hr style="border:none;border-top:1px solid var(--rule);margin:0 0 3rem;" />
+
+  <section>
+    <h2>Tooling built along the way</h2>
+    <p>An exhaustive C search validated the method through 12 digits (a 27-hour run on 8 cores), but exhaustive search is fundamentally exponential. A meet-in-the-middle solver, exploiting the fact that "self-reproducing at step <i>k</i>" is a single linear equation in the seed digits, cut that to roughly the square root of the search space and pushed the reachable range to 17 digits.</p>
+    <div class="stat-row" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat"><span class="n">27 hrs</span><span class="l">brute force, 12 digits</span></div>
+      <div class="stat"><span class="n">8.3 sec</span><span class="l">solver, same 12 digits</span></div>
+      <div class="stat"><span class="n">~19&ndash;22</span><span class="l">digit ceiling, this method</span></div>
+    </div>
+    <p style="margin-top:1.2rem;">A further attempt to reach much larger digit-lengths using lattice reduction (LLL) &mdash; the technique behind classic knapsack-cipher attacks &mdash; failed for a genuine mathematical reason: the recurrence's own structure fills the lattice with small unintended relations. That's the same failure mode that broke the Merkle&ndash;Hellman knapsack cipher in 1982. An encryption scheme built directly on this recurrence would very likely rediscover that weakness rather than escape it &mdash; worth naming, not worth building.</p>
+  </section>
+
+  <section class="support" style="border-bottom:none;">
+    <h2>Follow the next search</h2>
+    <p>This investigation is closed at 17 digits by search-space cost, not by curiosity. If it's useful or interesting to you, you can send BTC directly &mdash; there's no mailing list, no account required.</p>
+    <div class="btc-card">
+      <span class="btc-label">Bitcoin</span>
+      <div class="btc-addr-row">
+        <span class="btc-addr" id="btcAddr">bc1qkrl65hlfmvnp5w2jwtk4fmldg6jvmfwn0azzqu</span>
+        <button class="btc-copy" id="btcCopyBtn" type="button">Copy</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Search space: digit-lengths 3&ndash;17, exhaustive where noted, meet-in-the-middle beyond 12 digits.<br />Every reported hit independently re-verified by direct simulation of the recurrence, separate from whichever method found it.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var cs = getComputedStyle(document.documentElement);
+  var C = {
+    ink: cs.getPropertyValue('--ink').trim(),
+    inkSoft: cs.getPropertyValue('--ink-soft').trim(),
+    inkFaint: cs.getPropertyValue('--ink-faint').trim(),
+    accent: cs.getPropertyValue('--accent').trim(),
+    accentTint: cs.getPropertyValue('--accent-tint').trim(),
+    copper: cs.getPropertyValue('--copper').trim(),
+    rule: cs.getPropertyValue('--rule').trim(),
+    surface: cs.getPropertyValue('--surface').trim(),
+    paper: cs.getPropertyValue('--paper').trim(),
+    mono: "Space Mono, monospace"
+  };
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var data = [
+    {L:3,  hits:2, steps:5.50,  vals:["197","742"]},
+    {L:4,  hits:9, steps:8.22,  vals:["1104","1537","2208","2580","3684","4788","7385","7647","7909"]},
+    {L:5,  hits:7, steps:11.71, vals:["31331","34285","34348","55604","62662","86935","93993"]},
+    {L:6,  hits:10,steps:13.60, vals:["120284","129106","147640","156146","174680","183186","298320","355419","694280","925993"]},
+    {L:7,  hits:2, steps:17.00, vals:["1084051","7913837"]},
+    {L:8,  hits:3, steps:20.00, vals:["11436171","33445755","44121607"]},
+    {L:9,  hits:2, steps:22.50, vals:["129572008","251133297"]},
+    {L:10, hits:0, steps:null,  vals:[]},
+    {L:11, hits:2, steps:30.00, vals:["24769286411","96189170155"]},
+    {L:12, hits:4, steps:32.00, vals:["171570159070","202366307758","239143607789","296658839738"]},
+    {L:13, hits:2, steps:36.00, vals:["1934197506555","8756963649152"]},
+    {L:14, hits:3, steps:39.67, vals:["43520999798747","74596893730427","97295849958669"]},
+    {L:15, hits:3, steps:42.00, vals:["120984833091531","270585509032586","754788753590897"]},
+    {L:16, hits:3, steps:46.00, vals:["3621344088074041","3756915124022254","4362827422508274"]},
+    {L:17, hits:5, steps:48.60, vals:["11812665388886672","14508137312404344","16402582054271374","69953250322018194","73583709853303061"]}
+  ];
+  var primes = {"197":1,"1084051":1,"74596893730427":1};
+  var tbody = document.getElementById('dataTableBody');
+  data.forEach(function (row) {
+    var tr = document.createElement('tr');
+    var valsHtml = row.hits === 0 ? 'none found' : row.vals.map(function (v) {
+      return primes[v] ? '<span class="prime-mark">' + v + '</span>' : v;
+    }).join(', ');
+    tr.innerHTML =
+      '<td class="num">' + row.L + '</td>' +
+      '<td class="num">' + row.hits + '</td>' +
+      '<td class="num">' + (row.steps === null ? '&mdash;' : row.steps.toFixed(2)) + '</td>' +
+      '<td class="hits-list">' + valsHtml + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  (function () {
+    var canvas = document.getElementById('gearCanvas');
+    var dpr = window.devicePixelRatio || 1;
+    var size = 220;
+    canvas.width = size * dpr; canvas.height = size * dpr;
+    canvas.style.width = size + 'px'; canvas.style.height = size + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    var cx = size / 2, cy = size / 2;
+    var rInner = 62, rOuter = 92;
+    var occurs = {0:1,1:1,2:1,4:1,6:1,8:1,10:1,12:1,14:1,16:1};
+    var rot = 0;
+
+    function drawTooth(i) {
+      var a0 = (i / 18) * Math.PI * 2 - Math.PI / 2;
+      var a1 = ((i + 0.82) / 18) * Math.PI * 2 - Math.PI / 2;
+      var mid = (a0 + a1) / 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, rInner, a0, a1);
+      if (occurs[i]) {
+        ctx.arc(cx, cy, rOuter, a1, a0, true);
+      }
+      ctx.closePath();
+      if (occurs[i]) {
+        ctx.fillStyle = C.accent;
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = C.rule;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([2, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      var lr = rOuter + 13;
+      ctx.fillStyle = occurs[i] ? C.ink : C.inkFaint;
+      ctx.font = '10px ' + C.mono;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(i), cx + Math.cos(mid) * lr, cy + Math.sin(mid) * lr);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, size, size);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.translate(-cx, -cy);
+      for (var i = 0; i < 18; i++) drawTooth(i);
+      ctx.restore();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, rInner - 10, 0, Math.PI * 2);
+      ctx.fillStyle = C.surface;
+      ctx.fill();
+      ctx.strokeStyle = C.rule;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = C.ink;
+      ctx.font = '600 13px Fraunces, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('mod 18', cx, cy - 6);
+      ctx.font = '10px ' + C.mono;
+      ctx.fillStyle = C.inkSoft;
+      ctx.fillText('10 / 18', cx, cy + 10);
+    }
+
+    draw();
+    if (!reduceMotion) {
+      function tick() {
+        rot += 0.0016;
+        draw();
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+  })();
+
+  (function () {
+    var canvas = document.getElementById('jigsawCanvas');
+    var dpr = window.devicePixelRatio || 1;
+    var w = 620, h = 230;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    var rows = [
+      { digits: "1104", op: null },
+      { digits: "2580", op: "+" },
+      { digits: "3684", op: "=" }
+    ];
+    var cell = 60, r = 21;
+    var startX = 96, startY = 46, rowGap = 68;
+
+    function sides(d) {
+      if (d === 0) return 0;
+      if (d === 1) return -1;
+      if (d === 2) return -2;
+      return d;
+    }
+
+    function drawShape(x, y, d, filled) {
+      var n = sides(d);
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = filled ? C.accent : C.copper;
+      ctx.fillStyle = filled ? C.accentTint : 'transparent';
+      if (n === 0) {
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = C.inkFaint;
+        ctx.beginPath();
+        ctx.rect(-r * 0.72, -r * 0.72, r * 1.44, r * 1.44);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (n === -1) {
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else if (n === -2) {
+        ctx.beginPath();
+        ctx.moveTo(-r * 0.85, 0);
+        ctx.lineTo(r * 0.85, 0);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        for (var i = 0; i < n; i++) {
+          var a = (i / n) * Math.PI * 2 - Math.PI / 2;
+          var px = Math.cos(a) * r * 0.85, py = Math.sin(a) * r * 0.85;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.fillStyle = C.ink;
+      ctx.font = '600 13px ' + C.mono;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(d), 0, n === -2 ? -14 : 0);
+      ctx.restore();
+    }
+
+    ctx.clearRect(0, 0, w, h);
+    rows.forEach(function (row, ri) {
+      var y = startY + ri * rowGap;
+      if (row.op) {
+        ctx.fillStyle = C.inkSoft;
+        ctx.font = '600 20px Fraunces, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(row.op, startX - 46, y);
+      }
+      row.digits.split('').forEach(function (ch, ci) {
+        drawShape(startX + ci * cell, y, parseInt(ch, 10), ri === rows.length - 1);
+      });
+    });
+  })();
+
+  (function () {
+    var btn = document.getElementById('btcCopyBtn');
+    var addrEl = document.getElementById('btcAddr');
+    if (!btn || !addrEl) return;
+    btn.addEventListener('click', function () {
+      var text = addrEl.textContent;
+      function done(ok) {
+        btn.textContent = ok ? 'Copied' : 'Select & copy';
+        btn.setAttribute('data-copied', ok ? 'true' : 'false');
+        setTimeout(function () {
+          btn.textContent = 'Copy';
+          btn.removeAttribute('data-copied');
+        }, 1800);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else {
+        done(false);
+      }
+    });
+  })();
+})();
+</script>
+</body>
+</html>
