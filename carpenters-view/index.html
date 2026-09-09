@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Carpenter's View</title>
+<meta name="description" content="The methodology behind this notebook: the one statistical test used everywhere, bugs found inside the checking tools themselves, a fine-structure-constant claim tested and rejected, and a falsifiable prediction that failed cleanly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EBF0E9; --surface: #F7FAF5; --surface-raised: #FFFFFF;
+    --ink: #16201A; --ink-soft: #55624E; --ink-faint: #8B9683; --rule: #CFD9C6;
+    --accent: #1E6E58; --accent-ink: #F7FAF5; --accent-tint: #DCEBE3;
+    --copper: #AD5C27; --copper-tint: #F3E3D2;
+    --null: #6B7268; --null-tint: #E7EAE1;
+    --shadow: rgba(19, 28, 20, 0.10);
+    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+    --font-body: "Archivo", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Space Mono", "IBM Plex Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10150E; --surface: #171E15; --surface-raised: #1D2519;
+      --ink: #E6EBDF; --ink-soft: #9DA793; --ink-faint: #667060; --rule: #2B3527;
+      --accent: #57B296; --accent-ink: #0B120D; --accent-tint: #1C332B;
+      --copper: #E4915A; --copper-tint: #33261B;
+      --null: #8B9683; --null-tint: #232B1F;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--paper); }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent-tint); color: var(--ink); }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .page { max-width: 780px; margin: 0 auto; padding: 0 1.6rem 5rem; }
+
+  .notebook-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 1.6rem; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 0.78rem; }
+  .notebook-nav a { color: var(--ink-soft); text-decoration: none; }
+  .notebook-nav a:hover { color: var(--accent); }
+  .notebook-nav .home { color: var(--ink); font-weight: 700; }
+  .notebook-nav .home::before { content: "\2190 "; color: var(--copper); }
+
+  .hero { max-width: none; padding: 3.2rem 1.6rem 2.2rem; background: linear-gradient(180deg, var(--surface) 0%, var(--paper) 100%); border-bottom: 1px solid var(--rule); }
+  .hero-inner { max-width: 780px; margin: 0 auto; display: grid; gap: 1.4rem; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--copper); margin: 0; }
+  h1.title { font-family: var(--font-display); font-optical-sizing: auto; font-weight: 600; font-size: clamp(2.4rem, 7vw, 3.6rem); line-height: 1.04; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  .dek { font-size: 1.08rem; color: var(--ink-soft); max-width: 50ch; margin: 0; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .stat { background: var(--surface-raised); padding: 0.95rem 0.8rem; }
+  .stat .n { display: block; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+  .stat .l { font-size: 0.72rem; color: var(--ink-soft); }
+
+  section { padding: 3rem 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.7rem; margin: 0 0 1rem; text-wrap: balance; }
+  h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; margin: 0 0 0.5rem; }
+  p { margin: 0 0 1rem; max-width: 64ch; }
+  p:last-child { margin-bottom: 0; }
+  code { font-family: var(--font-mono); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 0.05em 0.35em; font-size: 0.9em; }
+
+  .finding { background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 14px; padding: 1.5rem 1.6rem; margin-top: 1.2rem; box-shadow: 0 1px 2px var(--shadow); }
+  .finding-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+  .finding-head h3 { margin: 0; }
+  .tag { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.22rem 0.55rem; border-radius: 999px; font-weight: 700; }
+  .tag--proven { background: var(--accent-tint); color: var(--accent); }
+  .tag--null { background: var(--null-tint); color: var(--null); }
+  .tag--limit { background: var(--copper-tint); color: var(--copper); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.85em; margin: 1rem 0; }
+  th, td { border: 1px solid var(--rule); padding: 0.4em 0.6em; text-align: left; }
+  th { background: var(--surface); font-family: var(--font-mono); font-size: 0.78em; }
+  td.num, th.num { font-family: var(--font-mono); text-align: right; }
+
+  .toc-list { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.88rem; }
+  .toc-list li { padding: 0.6rem 0.8rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
+  .toc-list .n { color: var(--copper); margin-right: 0.5rem; }
+
+  .cta-row { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1rem; }
+  .cta { display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; padding: 0.6rem 1.1rem; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-tint); }
+
+  .support { background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 16px; padding: 2rem; text-align: center; display: grid; gap: 0.9rem; justify-items: center; }
+  .support h2 { margin: 0; }
+  .support p { max-width: 48ch; }
+  .btc-card { display: grid; gap: 0.5rem; justify-items: center; border: 1px solid var(--rule); border-radius: 12px; padding: 1.1rem 1.4rem; background: var(--surface); }
+  .btc-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--copper); }
+  .btc-addr-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+  .btc-addr { font-family: var(--font-mono); font-size: 0.92rem; color: var(--ink); word-break: break-all; }
+  .btc-copy { font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent); background: var(--accent-tint); border: 1px solid var(--accent); border-radius: 999px; padding: 0.32rem 0.8rem; cursor: pointer; }
+  .btc-copy[data-copied="true"] { color: var(--accent-ink); background: var(--accent); }
+
+  footer { border-top: 1px solid var(--rule); padding-top: 1.6rem; margin-top: 3rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-faint); }
+  @media (max-width: 560px) { .stat-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="notebook-nav"><a class="home" href="/">The Lab Notebook</a><span>a carpenter's view</span></nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Field guide &middot; methodology</p>
+    <h1 class="title">A Carpenter's View</h1>
+    <p class="dek">The methodology behind everything else in this notebook: one statistical test, applied the same way to number theory, model activations, and a claim about the fine-structure constant &mdash; plus the bugs found inside the tools built to check it.</p>
+
+    <div class="stat-row">
+      <div class="stat"><span class="n">1</span><span class="l">test, used everywhere</span></div>
+      <div class="stat"><span class="n">3</span><span class="l">bugs found in the checkers</span></div>
+      <div class="stat"><span class="n">21</span><span class="l">pages</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <section>
+    <h2>What this book actually is</h2>
+    <p>The companion book, <a href="/self-reproducing-numbers/"><i>Proven, Measured, Refuted</i></a>, covers four investigations end to end with their full datasets. This one is the layer underneath all of them: the single test that separates a real result from a coincidence, three real bugs found inside the checking process itself rather than the hypothesis, and two case studies pulled from earlier, unpublished research &mdash; a claim about the fine-structure constant, and a falsifiable prediction about prime gaps that failed cleanly against real data.</p>
+  </section>
+
+  <section>
+    <h2>The fine-structure constant, assembled from parts</h2>
+    <p>A formula built from a small set of framework constants reproduces CODATA's value for 1/&alpha; to an error of 8.836806&times;10<sup>&minus;10</sup>. That precision is real and exactly computed. Whether it means anything is a different question &mdash; answered here by an exhaustive search of every reduced fraction with the same denominator range, which turned up four simpler fractions fitting the same target at least as well:</p>
+    <table>
+      <tr><th>Fraction</th><th class="num">Error</th><th>vs. the claimed fraction</th></tr>
+      <tr><td>7/431</td><td class="num">9.79&times;10<sup>&minus;11</sup></td><td>9&times; closer</td></tr>
+      <tr><td>9/554</td><td class="num">3.75&times;10<sup>&minus;10</sup></td><td>closer</td></tr>
+      <tr><td>12/739</td><td class="num">4.52&times;10<sup>&minus;10</sup></td><td>closer</td></tr>
+      <tr><td>11/677</td><td class="num">6.75&times;10<sup>&minus;10</sup></td><td>closer</td></tr>
+    </table>
+    <p>A dedicated verifier &mdash; now on its eighth revision, each version closing a hole found in the <i>previous</i> version's own checking logic &mdash; also computes the power of the "only one combination matches" argument used to defend this claim: a random target in the same range gets hit by some combination about 2% of the time, and of those hits, 100% are hit by exactly one. The verdict stands: <b>FAILED. Do not treat the alpha claim as verified</b> &mdash; not because the arithmetic is wrong, but because precision alone was never sufficient evidence.</p>
+  </section>
+
+  <section>
+    <h2>A falsifiable prediction that failed cleanly</h2>
+    <p>A separate rule predicted a specific dip in prime-gap statistics at one shell (231 = 21&times;11) and nowhere else across a tested range of seven. Real, previously computed data existed to check it:</p>
+    <table>
+      <tr><th class="num">Shell</th><th>Predicted</th><th>Actual</th><th>Match</th></tr>
+      <tr><td class="num">213</td><td>no dip</td><td>no dip</td><td>yes</td></tr>
+      <tr><td class="num">216</td><td>no dip</td><td>no dip</td><td>yes</td></tr>
+      <tr><td class="num">219</td><td>no dip</td><td>DIP</td><td>no</td></tr>
+      <tr><td class="num">222</td><td>no dip</td><td>DIP</td><td>no</td></tr>
+      <tr><td class="num">225</td><td>no dip</td><td>DIP</td><td>no</td></tr>
+      <tr><td class="num">228</td><td>no dip</td><td>no dip</td><td>yes</td></tr>
+      <tr><td class="num"><b>231</b></td><td><b>DIP</b></td><td>no dip</td><td><b>no</b></td></tr>
+    </table>
+    <p>3 of 7 correct &mdash; worse than chance &mdash; and the one shell the whole rule was built to confirm came back wrong. A clean, unambiguous falsification, and the best kind of result a sharp prediction can produce.</p>
+  </section>
+
+  <section>
+    <h2>Contents</h2>
+    <ul class="toc-list">
+      <li><span class="n">1</span>The Carpenter's Standard</li>
+      <li><span class="n">2</span>The One Tool Used Everywhere</li>
+      <li><span class="n">3</span>Measuring the Measuring Tape</li>
+      <li><span class="n">4</span>The Fine-Structure Constant, Assembled From Parts</li>
+      <li><span class="n">5</span>A Falsifiable Prediction That Failed Cleanly</li>
+      <li><span class="n">6</span>Ten Real Wins and the Shape Behind Them</li>
+      <li><span class="n">7</span>Ten of Eighteen</li>
+      <li><span class="n">8</span>Watching a Hypothesis Die in Real Time</li>
+      <li><span class="n">9</span>Knowing What You Actually Built</li>
+      <li><span class="n">10</span>The Carpenter's Rules</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Get the book</h2>
+    <p>Pay what you think it's worth on either platform &mdash; same PDF, same 21 pages.</p>
+    <div class="cta-row">
+      <a class="cta" href="https://sardini.gumroad.com/l/carpenters-view">Gumroad &mdash; $7+ &rarr;</a>
+      <a class="cta" href="https://leanpub.com/carpenters-view">Leanpub &mdash; $7+ &rarr;</a>
+    </div>
+  </section>
+
+  <section class="support" style="border-bottom:none;">
+    <h2>Follow the next search</h2>
+    <p>This book and the rest of the notebook are also supported directly via Bitcoin &mdash; no account required.</p>
+    <div class="btc-card">
+      <span class="btc-label">Bitcoin</span>
+      <div class="btc-addr-row">
+        <span class="btc-addr" id="btcAddr">bc1qkrl65hlfmvnp5w2jwtk4fmldg6jvmfwn0azzqu</span>
+        <button class="btc-copy" id="btcCopyBtn" type="button">Copy</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Every reported result independently re-verified by direct computation, separate from whichever method first found it.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var btn = document.getElementById('btcCopyBtn');
+  var addrEl = document.getElementById('btcAddr');
+  if (!btn || !addrEl) return;
+  btn.addEventListener('click', function () {
+    var text = addrEl.textContent;
+    function done(ok) {
+      btn.textContent = ok ? 'Copied' : 'Select & copy';
+      btn.setAttribute('data-copied', ok ? 'true' : 'false');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.removeAttribute('data-copied'); }, 1800);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    } else { done(false); }
+  });
+})();
+</script>
+</body>
+</html>
