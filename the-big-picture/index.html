@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Digit Cascade</title>
-<meta name="description" content="An Android puzzle game built directly on the self-reproducing-numbers research: push tiles to build known hits, or craft new ones for real using the proven additive theorem.">
+<title>The Big Picture</title>
+<meta name="description" content="Of the small things that make a strong house — a practical framing guide built on one maxim: level the plate, do not survey the errors.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -61,24 +61,15 @@
   p { margin: 0 0 1rem; max-width: 64ch; }
   p:last-child { margin-bottom: 0; }
   code { font-family: var(--font-mono); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 0.05em 0.35em; font-size: 0.9em; }
-  pre { font-family: var(--font-mono); font-size: 0.85rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 0.9rem 1.1rem; overflow-x: auto; }
 
-  .flow { display: grid; gap: 0.6rem; margin-top: 1rem; }
-  .flow-step { display: grid; grid-template-columns: 1.8rem 1fr; gap: 0.8rem; align-items: start; padding: 0.75rem 0.9rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
-  .flow-num { font-family: var(--font-mono); font-weight: 700; color: var(--accent); }
+  .maxim { font-family: var(--font-display); font-style: italic; font-size: 1.3rem; text-align: center; padding: 1.6rem; border: 1px solid var(--rule); border-radius: 12px; background: var(--surface-raised); margin: 1.2rem 0; }
 
-  .null-list { list-style: none; margin: 1.2rem 0 0; padding: 0; display: grid; gap: 0.55rem; }
-  .null-item { padding: 0.85rem 1rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
-  .null-what { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
-  .null-detail { color: var(--ink-soft); font-size: 0.88rem; font-family: var(--font-mono); }
+  .toc-list { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.88rem; }
+  .toc-list li { padding: 0.6rem 0.8rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
+  .toc-list .n { color: var(--copper); margin-right: 0.5rem; }
 
   .cta-row { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1rem; }
-  .cta {
-    display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none;
-    font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700;
-    padding: 0.6rem 1.1rem; border-radius: 999px; border: 1px solid var(--accent);
-    color: var(--accent); background: var(--accent-tint);
-  }
+  .cta { display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; padding: 0.6rem 1.1rem; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-tint); }
 
   .support { background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 16px; padding: 2rem; text-align: center; display: grid; gap: 0.9rem; justify-items: center; }
   .support h2 { margin: 0; }
@@ -96,18 +87,18 @@
 </head>
 <body>
 
-<nav class="notebook-nav"><a class="home" href="/">The Lab Notebook</a><span>digit cascade</span></nav>
+<nav class="notebook-nav"><a class="home" href="/">The Lab Notebook</a><span>the big picture</span></nav>
 
 <div class="hero">
   <div class="hero-inner">
-    <p class="eyebrow">Field report &middot; Android game</p>
-    <h1 class="title">Digit Cascade</h1>
-    <p class="dek">A puzzle game where the puzzle <i>is</i> the real recurrence from <a href="/self-reproducing-numbers/">The Reproducing Set</a> &mdash; every push, cascade, and craft is the actual math running, not a themed reskin of it.</p>
+    <p class="eyebrow">Field guide &middot; framing</p>
+    <h1 class="title">The Big Picture</h1>
+    <p class="dek">Of the small things that make a strong house. A practical guide to framing methods that produce a genuinely sound structure &mdash; not facades, finishes, or curb appeal.</p>
 
     <div class="stat-row">
-      <div class="stat"><span class="n">57</span><span class="l">real known targets, digit-lengths 3&ndash;17</span></div>
-      <div class="stat"><span class="n">1</span><span class="l">proven theorem, made playable</span></div>
-      <div class="stat"><span class="n">&infin;</span><span class="l">levels reachable via cascade, past the known 57</span></div>
+      <div class="stat"><span class="n">10</span><span class="l">chapters</span></div>
+      <div class="stat"><span class="n">1</span><span class="l">guiding maxim</span></div>
+      <div class="stat"><span class="n">28</span><span class="l">pages</span></div>
     </div>
   </div>
 </div>
@@ -115,37 +106,45 @@
 <div class="page">
 
   <section>
-    <h2>The puzzle is the recurrence</h2>
-    <p>Every level targets one specific real self-reproducing number. You own a tray of digit tiles; dropping one into a row pushes whatever's already there sideways via a crossover rule &mdash; drop from the left, the displaced digit is tagged to push right, and vice versa. Land your own digits into the exact arrangement of a real target and the game runs the actual recurrence check live: sum the previous <code>k</code> terms, watch the pyramid of results grow, and see if it reproduces the seed &mdash; because that's the literal mathematical definition of self-reproducing, not a game mechanic standing in for it.</p>
-    <div class="flow">
-      <div class="flow-step"><span class="flow-num">1</span><span>Entry always happens at the same fixed row &mdash; every digit you own funnels in from the top, Plinko-style.</span></div>
-      <div class="flow-step"><span class="flow-num">2</span><span>A push chain that reaches an already-full edge doesn't block: the displaced digit overflows down into the next level's row instead, cascading as far as it needs to.</span></div>
-      <div class="flow-step"><span class="flow-num">3</span><span>Solved levels stay visible, in full color, forever &mdash; scroll down to see locked levels below, already partly seeded by whatever's cascaded into them.</span></div>
-    </div>
+    <h2>The argument</h2>
+    <p>Stand in a finished house and you're looking at almost none of what makes it strong. The drywall carries no load. The paint carries no load. By the time finish work starts, the house's real strength was already decided &mdash; in framing, a stage most people never examine closely. A house doesn't fail because someone forgot to build a foundation. It fails from an accumulation of small framing decisions, each individually defensible, collectively wrong. Get enough of them right and the house is strong in a way that has nothing to do with how it looks.</p>
   </section>
 
   <section>
-    <h2>Craft: playing the proven theorem</h2>
-    <p>The research behind this game proved one real theorem: because the recurrence is linear, two same-length self-reproducing numbers add digit-by-digit &mdash; no carrying &mdash; into a third. Once you've solved two levels of the same digit length, Craft lets you combine them and the game runs the real check on whatever comes out. Anything genuinely new (not already on the known list of 57) gets reported &mdash; this is a real, if small, path to finding self-reproducing numbers nobody has confirmed yet, not just replaying known ones.</p>
+    <h2>The maxim</h2>
+    <div class="maxim">&ldquo;Level the plate; do not survey the errors.&rdquo;</div>
+    <p>Given an imperfection in what you've been handed, there are two moves. <b>Describe it</b> &mdash; measure it, note it, carry it forward as a correction to remember later. Or <b>absorb it</b> &mdash; find one true reference and bring everything else to meet it, once, so the imperfection stops existing for every measurement after. A leveled plate removes a whole class of future measurement from the job; a survey just adds another row to a table someone has to keep consulting forever. Every technique in this book, from a foundation to a roof to a run of stairs, is one instruction applied at a different scale: does this method describe the error, or does it absorb it?</p>
   </section>
 
   <section>
-    <h2>Built and broken in the open</h2>
-    <p>Two real engine bugs were found via large-scale simulation (500k&ndash;20M simulated drops), not manual play: an overflow landing on an already-full edge couldn't cascade into that row's own interior, permanently capping every level past the second; and a specific reachable tag configuration caused an actual <code>StackOverflowError</code>, reproducible in as few as 2,000 drops. Both are fixed and re-verified at scale &mdash; a 100,000-drop run now solves 14 of 57 levels from blind random play alone, including a real 5-digit target, versus a hard ceiling of 2 before the fixes.</p>
+    <h2>Contents</h2>
+    <ul class="toc-list">
+      <li><span class="n">&mdash;</span>Introduction: The Big Picture</li>
+      <li><span class="n">1</span>The Foundation You're Given</li>
+      <li><span class="n">2</span>Floors That Don't Bounce</li>
+      <li><span class="n">3</span>The Wall as a System</li>
+      <li><span class="n">4</span>Openings Without Guesswork</li>
+      <li><span class="n">5</span>The Roof's Real Job</li>
+      <li><span class="n">6</span>Rafters, Trusses, and the Ridge</li>
+      <li><span class="n">7</span>No Pole &mdash; Just Light</li>
+      <li><span class="n">8</span>Hip Roofs Without the Math</li>
+      <li><span class="n">9</span>Stair Stringers That Tell You Where They Go</li>
+      <li><span class="n">10</span>Conclusion: The Skeleton Is the Argument</li>
+    </ul>
   </section>
 
   <section>
-    <h2>Get it</h2>
-    <p>Not on the Play Store &mdash; download the signed APK directly (pay what you think it's worth), or build it yourself. Native Kotlin + Jetpack Compose, source and full build history on GitHub.</p>
+    <h2>Get the book</h2>
+    <p>Pay what you think it's worth on either platform. PDF and EPUB.</p>
     <div class="cta-row">
-      <a class="cta" href="https://sardini.gumroad.com/l/digit-cascade">Download APK &mdash; $3+ &rarr;</a>
-      <a class="cta" href="https://github.com/ras2045/digit-cascade">View on GitHub &rarr;</a>
+      <a class="cta" href="https://sardini.gumroad.com/l/the-big-picture">Gumroad &mdash; $9+ &rarr;</a>
+      <a class="cta" href="https://leanpub.com/the-big-picture">Leanpub &mdash; $9+ &rarr;</a>
     </div>
   </section>
 
   <section class="support" style="border-bottom:none;">
     <h2>Follow the next search</h2>
-    <p>This project and the rest of the notebook are supported directly via Bitcoin &mdash; no account required.</p>
+    <p>This book and the rest of the notebook are also supported directly via Bitcoin &mdash; no account required.</p>
     <div class="btc-card">
       <span class="btc-label">Bitcoin</span>
       <div class="btc-addr-row">
@@ -156,7 +155,7 @@
   </section>
 
   <footer>
-    <p>Built directly on the research in <a href="/self-reproducing-numbers/">The Reproducing Set</a>. Every crafted or cascaded find is checked against the real recurrence before being reported &mdash; nothing is assumed from the proof alone.</p>
+    <p>Written for a serious DIYer, framer, or renovator who wants to understand why framing is done a certain way, not just how.</p>
   </footer>
 
 </div>
